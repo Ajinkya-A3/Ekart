@@ -8,6 +8,8 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
+        ARGOCD_SERVER = '34.47.186.224:32000'
+        APP_NAME = 'ekart'
     }
 
     stages {
@@ -100,8 +102,8 @@ pipeline {
                             git config user.name "jenkins"
                             git config user.email "jenkins@yourdomain.com"
                             git checkout main
-                            sed -i 's|image: .*|image: ${imageTag}|' deploymentservice.yml
-                            git add deploymentservice.yml
+                            sed -i 's|image: .*|image: ${imageTag}|' k8s/deploymentservice.yml
+                            git add k8s/deploymentservice.yml
                             git commit -m "Update image to ${imageTag} via Jenkins"
                             git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Ajinkya-A3/Ekart.git
                             git push origin main
@@ -110,5 +112,23 @@ pipeline {
                 }
             }
         }
+       stage('ArgoCD Sync') {
+            steps {
+                withCredentials([usernamePassword(
+                credentialsId: 'argocd-cred',
+                usernameVariable: 'ARGOCD_USERNAME',
+                passwordVariable: 'ARGOCD_PASSWORD'
+                )]) {
+        sh """
+        export HOME=\$(mktemp -d)
+        argocd login ${ARGOCD_SERVER} --username \$ARGOCD_USERNAME --password \$ARGOCD_PASSWORD --insecure
+        argocd app sync ${APP_NAME}
+        argocd app wait ${APP_NAME} --health --sync
+    """
+}
+
+    }
+}
+
     }
 }
