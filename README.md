@@ -179,10 +179,10 @@ sudo mv argocd /usr/local/bin/
 
 **Ajinkya**  
 Cloud & DevOps Enthusiast | CI/CD | Kubernetes | GitOps  
-[GitHub Profile](https://github.com/Ajinkya-A3)
+[Ajinkya-A3](https://github.com/Ajinkya-A3)
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License.
