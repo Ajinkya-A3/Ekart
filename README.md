@@ -1,167 +1,188 @@
-# Spring Boot Shopping Cart Web App
 
-## About
+# 🚀 Ekart CI/CD Pipeline with Jenkins, Docker, Argo CD, and GitOps
 
-This is a demo project for practicing Spring + Thymeleaf. The idea was to build some basic shopping cart web app.
+This project implements a complete DevSecOps CI/CD pipeline for a Java-based e-commerce application (**Ekart**) using Jenkins, SonarQube, Docker, Nexus, Trivy, and Argo CD with GitOps methodology.
 
-It was made using **Spring Boot**, **Spring Security**, **Thymeleaf**, **Spring Data JPA**, **Spring Data REST and Docker**. 
-Database is in memory **H2**.
+---
 
-There is a login and registration functionality included.
+## ⚙️ Environment Setup
 
-Users can shop for products. Each user has his own shopping cart (session functionality).
-Checkout is transactional.
+### ☕ Install JDK 17 on Ubuntu
 
-## Configuration
-
-### Configuration Files
-
-Folder **src/resources/** contains config files for **shopping-cart** Spring Boot application.
-
-* **src/resources/application.properties** - main configuration file. Here it is possible to change admin username/password,
-as well as change the port number.
-
-## How to run
-
-There are several ways to run the application. You can run it from the command line with included Maven Wrapper, Maven or Docker. 
-
-Once the app starts, go to the web browser and visit `http://localhost:8070/home`
-
-Admin username: **admin**
-
-Admin password: **admin**
-
-User username: **user**
-
-User password: **password**
-
-### Maven Wrapper
-
-#### Using the Maven Plugin
-
-Go to the root folder of the application and type:
 ```bash
-$ chmod +x scripts/mvnw
-$ scripts/mvnw spring-boot:run
+sudo apt update
+sudo apt install openjdk-17-jdk -y
+java -version
 ```
 
-#### Using Executable Jar
+---
 
-Or you can build the JAR file with 
-```bash
-$ scripts/mvnw clean package
-``` 
+### 🔧 Install Jenkins on Ubuntu
 
-Then you can run the JAR file:
 ```bash
-$ java -jar target/shopping-cart-0.0.1-SNAPSHOT.jar
+# Step 1: Add Jenkins repository and key
+curl -fsSL https://pkg.jenkins.io/debian/jenkins.io-2023.key | sudo tee   /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]   https://pkg.jenkins.io/debian binary/ | sudo tee   /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+# Step 2: Install Jenkins
+sudo apt update
+sudo apt install jenkins -y
+
+# Step 3: Start and enable Jenkins
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+# Step 4: Access Jenkins in browser
+# URL: http://<your-server-ip>:8080
 ```
 
-### Maven
+---
 
-Open a terminal and run the following commands to ensure that you have valid versions of Java and Maven installed:
+## 📌 Project Overview
 
-```bash
-$ java -version
-java version "1.8.0_102"
-Java(TM) SE Runtime Environment (build 1.8.0_102-b14)
-Java HotSpot(TM) 64-Bit Server VM (build 25.102-b14, mixed mode)
+This pipeline ensures:
+- Code compilation and testing
+- Code quality analysis (SonarQube)
+- Secure build and packaging
+- Docker image scanning (Trivy)
+- Artifact upload to Nexus
+- GitOps-style deployment to Kubernetes using Argo CD
+
+---
+
+## 🛠️ Tools & Technologies
+
+| Tool           | Purpose                                     |
+|----------------|---------------------------------------------|
+| Jenkins        | CI/CD Orchestration                         |
+| Maven          | Project Build Tool                          |
+| JDK 17         | Java Compilation                            |
+| SonarQube      | Static Code Analysis                        |
+| Nexus          | Artifact Repository                         |
+| Docker         | Containerization                            |
+| Trivy          | Image Vulnerability Scanning                |
+| Argo CD        | Continuous Deployment via GitOps            |
+| GitHub         | Version Control & GitOps Manifest Repository|
+
+---
+
+## 🧱 Project Structure
+
+```
+Ekart/
+├── docker/
+│   └── Dockerfile                  # Docker build file
+├── k8s/
+│   └── deploymentservice.yml      # Kubernetes deployment manifest
+├── src/                           # Java source code
+├── pom.xml                        # Maven project file
+├── Jenkinsfile                    # CI/CD pipeline definition
+└── trivy-report.txt               # Output of Trivy scan
 ```
 
-```bash
-$ mvn -v
-Apache Maven 3.3.9 (bb52d8502b132ec0a5a3f4c09453c07478323dc5; 2015-11-10T16:41:47+00:00)
-Maven home: /usr/local/Cellar/maven/3.3.9/libexec
-Java version: 1.8.0_102, vendor: Oracle Corporation
-```
+---
 
-#### Using the Maven Plugin
+## 🔄 CI/CD Workflow (Jenkins Pipeline)
 
-The Spring Boot Maven plugin includes a run goal that can be used to quickly compile and run your application. 
-Applications run in an exploded form, as they do in your IDE. 
-The following example shows a typical Maven command to run a Spring Boot application:
- 
-```bash
-$ mvn spring-boot:run
-``` 
+### Stages:
+1. **Git Checkout**  
+   Clones the `main` branch from GitHub.
 
-#### Using Executable Jar
+2. **Compile & Unit Test**  
+   Compiles the Java code and optionally runs tests.
 
-To create an executable jar run:
+3. **SonarQube Scan**  
+   Analyzes the code using SonarQube for bugs and code smells.
 
-```bash
-$ mvn clean package
-``` 
+4. **Build & Package**  
+   Packages the application using Maven.
 
-To run that application, use the java -jar command, as follows:
+5. **Deploy to Nexus**  
+   Uploads `.jar`/`.war` to Nexus Repository.
 
-```bash
-$ java -jar target/shopping-cart-0.0.1-SNAPSHOT.jar
-```
+6. **Docker Image Build & Trivy Scan**  
+   Builds a Docker image and scans it using Trivy for vulnerabilities.
 
-To exit the application, press **ctrl-c**.
+7. **Push Docker Image**  
+   Pushes the tagged image to Docker Hub.
 
-### Docker
+8. **GitOps Deployment**  
+   - Updates the image tag in `k8s/deploymentservice.yml`
+   - Commits the change to GitHub
 
-It is possible to run **shopping-cart** using Docker:
+9. **Argo CD Sync**  
+   Triggers Argo CD sync to deploy the updated image in Kubernetes.
 
-Build Docker image:
-```bash
-$ mvn clean package
-$ docker build -t shopping-cart:dev -f docker/Dockerfile .
-```
+---
 
-Run Docker container:
-```bash
-$ docker run --rm -i -p 8070:8070 \
-      --name shopping-cart \
-      shopping-cart:dev
-```
-
-##### Helper script
-
-It is possible to run all of the above with helper script:
+## 🚀 Argo CD Setup in Kubernetes
 
 ```bash
-$ chmod +x scripts/run_docker.sh
-$ scripts/run_docker.sh
+# Step 1: Create Argo CD namespace and install
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Step 2: Expose Argo CD (via NodePort)
+kubectl patch svc argocd-server -n argocd -p '{
+  "spec": {
+    "type": "NodePort",
+    "ports": [{"port": 80, "targetPort": 8080, "nodePort": 32000}]
+  }
+}'
+
+# Step 3: Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret   -o jsonpath="{.data.password}" | base64 -d && echo
+
+# Step 4: Access Argo CD in browser
+# URL: http://<your-vm-ip>:32000
+# Username: admin
+# Password: (output from above)
+
+# Step 5: Install Argo CD CLI
+VERSION=$(curl -s https://api.github.com/repos/argoproj/argo-cd/releases/latest   | grep tag_name | cut -d '"' -f 4)
+
+curl -sSL -o argocd   "https://github.com/argoproj/argo-cd/releases/download/${VERSION}/argocd-linux-amd64"
+
+chmod +x argocd
+sudo mv argocd /usr/local/bin/
 ```
 
-## Docker 
+---
 
-Folder **docker** contains:
+## 🔐 Credentials Used
 
-* **docker/shopping-cart/Dockerfile** - Docker build file for executing shopping-cart Docker image. 
-Instructions to build artifacts, copy build artifacts to docker image and then run app on proper port with proper configuration file.
+| Credential ID     | Usage                          |
+|-------------------|--------------------------------|
+| `docker-cred`     | For DockerHub login            |
+| `git-credentials` | For pushing manifest to GitHub |
+| `argocd-cred`     | For Argo CD login              |
 
-## Util Scripts
+---
 
-* **scripts/run_docker.sh.sh** - util script for running shopping-cart Docker container using **docker/Dockerfile**
+## 🌐 Accessing Argo CD
 
-## Tests
+- URL: `http://34.47.186.224:32000`
+- App Name: `ekart`
 
-Tests can be run by executing following command from the root of the project:
+---
 
-```bash
-$ mvn test
-```
+## 📈 Future Improvements
 
-## Helper Tools
+- Enable OWASP Dependency-Check (commented in Jenkinsfile)
+- Archive Trivy and Sonar reports in Jenkins
+- Add integration and end-to-end test stages
 
-### HAL REST Browser
+---
 
-Go to the web browser and visit `http://localhost:8070/`
+## ✍️ Author
 
-You will need to be authenticated to be able to see this page.
+**Ajinkya**  
+Cloud & DevOps Enthusiast | CI/CD | Kubernetes | GitOps  
+[GitHub Profile](https://github.com/Ajinkya-A3)
 
-### H2 Database web interface
+---
 
-Go to the web browser and visit `http://localhost:8070/h2-console`
+## 📄 License
 
-In field **JDBC URL** put 
-```
-jdbc:h2:mem:shopping_cart_db
-```
-
-In `/src/main/resources/application.properties` file it is possible to change both
-web interface url path, as well as the datasource url.
+This project is licensed under the MIT License.
