@@ -6,3 +6,5 @@ nodes:
       - containerPort: 32000  # NodePort exposed by Argo CD service
         hostPort: 32000       # Port accessible on your VM's public IP
         protocol: TCP
+  - role: worker
+  - role: worker
