@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: ekart
-          image: at1asflame/ekart:5
+          image: at1asflame/ekart:6
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8070 # The port that the container is running on in the cluster
