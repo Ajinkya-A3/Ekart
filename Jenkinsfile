@@ -112,23 +112,21 @@ pipeline {
                 }
             }
         }
-       stage('ArgoCD Sync') {
+        stage('ArgoCD Sync') {
             steps {
                 withCredentials([usernamePassword(
                 credentialsId: 'argocd-cred',
                 usernameVariable: 'ARGOCD_USERNAME',
                 passwordVariable: 'ARGOCD_PASSWORD'
                 )]) {
-        sh """
-        export HOME=\$(mktemp -d)
-        argocd login ${ARGOCD_SERVER} --username \$ARGOCD_USERNAME --password \$ARGOCD_PASSWORD --insecure
-        argocd app sync ${APP_NAME}
-        argocd app wait ${APP_NAME} --health --sync
-    """
-}
-
-    }
-}
-
+                    sh """
+                export HOME=\$(mktemp -d)
+                argocd login ${ARGOCD_SERVER} --username \$ARGOCD_USERNAME      --password \$ARGOCD_PASSWORD --insecure
+                argocd app sync ${APP_NAME}
+                argocd app wait ${APP_NAME} --health --sync
+                """
+                }
+            }
+        }
     }
 }
